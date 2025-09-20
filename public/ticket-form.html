@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nowe Zgłoszenie - MDT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style> 
+        body { font-family: 'Inter', sans-serif; } 
+        .autocomplete-suggestions { max-height: 150px; }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 flex h-screen">
+
+    <aside id="sidebar-container" class="w-64 bg-gray-800 p-4 flex flex-col min-h-screen flex-shrink-0"></aside>
+
+    <main class="flex-1 p-8 overflow-y-auto">
+        <h1 class="text-3xl font-bold text-white mb-6">Nowe Zgłoszenie</h1>
+        <form id="ticket-form" class="space-y-6 bg-gray-800 p-6 rounded-lg shadow-lg">
+            
+            <fieldset class="border-b border-gray-700 pb-4">
+                <legend class="text-lg font-semibold text-white">1. Rodzaj Zgłoszenia</legend>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <select id="reportType" class="w-full bg-gray-700 rounded p-2">
+                        <option value="mandat">Mandat</option>
+                        <option value="pouczenie">Pouczenie</option>
+                    </select>
+                    <select id="ticketTarget" class="w-full bg-gray-700 rounded p-2">
+                        <option value="vehicle">Dla kierowcy pojazdu</option>
+                        <option value="person">Dla osoby (pieszy)</option>
+                    </select>
+                </div>
+            </fieldset>
+
+            <fieldset class="border-b border-gray-700 pb-4">
+                <legend class="text-lg font-semibold text-white">2. Dane Osoby</legend>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                     <div class="relative md:col-span-2">
+                        <label for="civilianDiscordId" class="block text-sm font-medium text-gray-400">ID Discord (zacznij pisać, aby wyszukać)</label>
+                        <input type="text" id="civilianDiscordId" class="mt-1 block w-full bg-gray-700 rounded p-2" placeholder="Wymagane dla mandatów" required>
+                        <div class="autocomplete-suggestions absolute w-full bg-gray-600 rounded-b-md overflow-y-auto z-10 border-t border-gray-500 hidden"></div>
+                    </div>
+                    <div id="person-fields" class="hidden md:col-span-2">
+                        <label for="civilianFullName" class="block text-sm font-medium text-gray-400">Imię i Nazwisko osoby</label>
+                        <input type="text" id="civilianFullName" class="mt-1 block w-full bg-gray-700 rounded p-2">
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset id="vehicle-fieldset" class="border-b border-gray-700 pb-4">
+                <legend class="text-lg font-semibold text-white">3. Dane Pojazdu</legend>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div>
+                        <label for="vehicleInfo" class="block text-sm font-medium text-gray-400">Marka, Model, Kolor</label>
+                        <input type="text" id="vehicleInfo" class="mt-1 block w-full bg-gray-700 rounded p-2">
+                    </div>
+                    <div>
+                        <label for="licensePlate" class="block text-sm font-medium text-gray-400">Numer rejestracyjny / stan</label>
+                        <input type="text" id="licensePlate" class="mt-1 block w-full bg-gray-700 rounded p-2">
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset class="border-b border-gray-700 pb-4">
+                <legend class="text-lg font-semibold text-white">4. Szczegóły Zgłoszenia</legend>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div>
+                        <label for="location" class="block text-sm font-medium text-gray-400">Miejsce wystawienia</label>
+                        <input type="text" id="location" class="mt-1 block w-full bg-gray-700 rounded p-2" required>
+                    </div>
+                    <div id="mandate-fields">
+                        <label for="isAccepted" class="block text-sm font-medium text-gray-400">Czy został przyjęty</label>
+                        <select id="isAccepted" class="mt-1 block w-full bg-gray-700 rounded p-2">
+                            <option>Tak</option>
+                            <option>Nie</option>
+                        </select>
+                         <label for="deliveryMethod" class="mt-4 block text-sm font-medium text-gray-400">Sposób wręczenia</label>
+                        <select id="deliveryMethod" class="mt-1 block w-full bg-gray-700 rounded p-2">
+                            <option>do ręki</option>
+                            <option>elektroniczny</option>
+                        </select>
+                    </div>
+                </div>
+            </fieldset>
+            
+            <fieldset>
+                <legend class="text-lg font-semibold text-white">5. Zarzuty i Kara</legend>
+                 <div class="mt-4">
+                    <h3 class="text-md font-medium text-gray-300">Wybrane zarzuty:</h3>
+                    <ul id="selected-charges" class="mt-2 space-y-2 text-sm">
+                        <li class="text-gray-500">Wybierz zarzuty z taryfikatora.</li>
+                    </ul>
+                </div>
+                <div class="mt-6 flex justify-end items-center space-x-4 bg-gray-900 p-4 rounded-b-lg">
+                    <span class="text-gray-400">Kara grzywny:</span>
+                    <span id="total-fine" class="text-2xl font-bold text-green-400">$0</span>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend class="text-lg font-semibold text-white">6. Taryfikator</legend>
+                <iframe id="taryfikator-iframe" src="taryfikator.html" class="w-full mt-4 border-0 rounded-md" style="height: 60vh;"></iframe>
+            </fieldset>
+            
+            <div id="form-message" class="text-center h-4"></div>
+            
+            <div class="flex justify-end pt-4">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center">
+                    <i data-lucide="send" class="w-5 h-5 mr-2"></i>
+                    Wystaw Zgłoszenie
+                </button>
+            </div>
+        </form>
+    </main>
+    
+    <script src="shared.js"></script>
+    <script>
+        let currentMandateCharges = [];
+        let allCitizens = [];
+
+        function addChargeToMandate(charge) {
+             if (!currentMandateCharges.some(c => c.id === charge.id)) {
+                currentMandateCharges.push(charge);
+                renderSelectedCharges();
+            }
+        }
+        
+        function renderSelectedCharges() {
+            const selectedChargesList = document.getElementById('selected-charges');
+            const totalFineEl = document.getElementById('total-fine');
+            let totalFine = currentMandateCharges.reduce((sum, charge) => sum + charge.price, 0);
+
+            selectedChargesList.innerHTML = '';
+            if (currentMandateCharges.length === 0) {
+                selectedChargesList.innerHTML = '<li class="text-gray-500">Wybierz zarzuty z taryfikatora.</li>';
+            } else {
+                currentMandateCharges.forEach((charge) => {
+                    const li = document.createElement('li');
+                    li.className = 'flex justify-between items-center bg-gray-700 p-2 rounded';
+                    li.innerHTML = `
+                        <span>${charge.name}</span>
+                        <div class="flex items-center">
+                            <span class="font-semibold mr-4">$${charge.price}</span>
+                            <button type="button" data-id="${charge.id}" class="remove-charge-btn text-red-500 hover:text-red-400 p-1 rounded-full"><i data-lucide="trash-2" class="w-4 h-4 pointer-events-none"></i></button>
+                        </div>
+                    `;
+                    selectedChargesList.appendChild(li);
+                });
+                lucide.createIcons();
+            }
+            totalFineEl.textContent = `$${totalFine}`;
+            
+            const iframe = document.getElementById('taryfikator-iframe');
+            if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.postMessage({
+                    type: 'UPDATE_SELECTED_CHARGES',
+                    payload: currentMandateCharges.map(c => c.id)
+                }, '*');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const userData = await loadSidebarAndUserData('ticket-form');
+            if(!userData) return;
+
+            const token = localStorage.getItem('mdt-token');
+            try {
+                const response = await fetch('/api/citizens', { headers: { 'Authorization': token } });
+                allCitizens = await response.json();
+            } catch (error) { console.error("Błąd ładowania obywateli:", error); }
+
+            const civilianDiscordIdInput = document.getElementById('civilianDiscordId');
+            const suggestionsContainer = civilianDiscordIdInput.nextElementSibling;
+            setupCitizenAutocomplete(civilianDiscordIdInput, suggestionsContainer, allCitizens);
+
+            const reportTypeSelect = document.getElementById('reportType');
+            const mandateFields = document.getElementById('mandate-fields');
+            const totalFineContainer = document.getElementById('total-fine').parentElement;
+            const ticketTargetSelect = document.getElementById('ticketTarget');
+            const vehicleFieldset = document.getElementById('vehicle-fieldset');
+            const personFields = document.getElementById('person-fields');
+            
+            function toggleFormFields() {
+                const isMandate = reportTypeSelect.value === 'mandat';
+                mandateFields.style.display = isMandate ? 'block' : 'none';
+                totalFineContainer.style.display = isMandate ? 'flex' : 'none';
+
+                const isVehicleTicket = ticketTargetSelect.value === 'vehicle';
+                vehicleFieldset.style.display = isVehicleTicket ? 'block' : 'none';
+                personFields.style.display = isVehicleTicket ? 'none' : 'block';
+
+                document.getElementById('vehicleInfo').required = isVehicleTicket;
+                document.getElementById('licensePlate').required = isVehicleTicket;
+                document.getElementById('civilianFullName').required = !isVehicleTicket;
+            }
+
+            reportTypeSelect.addEventListener('change', toggleFormFields);
+            ticketTargetSelect.addEventListener('change', toggleFormFields);
+            
+            document.getElementById('selected-charges').addEventListener('click', (e) => {
+                const removeButton = e.target.closest('.remove-charge-btn');
+                if (removeButton) {
+                    const idToRemove = parseInt(removeButton.dataset.id, 10);
+                    currentMandateCharges = currentMandateCharges.filter(c => c.id !== idToRemove);
+                    renderSelectedCharges();
+                }
+            });
+
+            const ticketForm = document.getElementById('ticket-form');
+            const formMessage = document.getElementById('form-message');
+
+            ticketForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                formMessage.textContent = 'Wysyłanie...';
+                
+                // Wyciągnij ID z formatu <@ID>
+                const discordIdRaw = document.getElementById('civilianDiscordId').value;
+                const discordIdMatch = discordIdRaw.match(/<@(\d+)>/);
+                const civilianDiscordId = discordIdMatch ? discordIdMatch[1] : discordIdRaw;
+
+                const reportData = {
+                    reportType: reportTypeSelect.value,
+                    ticketTarget: ticketTargetSelect.value,
+                    civilianDiscordId: civilianDiscordId,
+                    civilianFullName: document.getElementById('civilianFullName').value,
+                    vehicleInfo: document.getElementById('vehicleInfo').value,
+                    licensePlate: document.getElementById('licensePlate').value,
+                    charges: currentMandateCharges,
+                    totalFine: currentMandateCharges.reduce((sum, charge) => sum + charge.price, 0),
+                    location: document.getElementById('location').value,
+                    isAccepted: document.getElementById('isAccepted').value,
+                    deliveryMethod: document.getElementById('deliveryMethod').value,
+                };
+                
+                fetch('/api/records', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': token },
+                    body: JSON.stringify(reportData)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.success) {
+                        formMessage.textContent = 'Zgłoszenie zostało pomyślnie wystawione!';
+                        ticketForm.reset();
+                        currentMandateCharges = [];
+                        renderSelectedCharges();
+                        toggleFormFields();
+                        setTimeout(() => formMessage.textContent = '', 3000);
+                    } else { throw new Error(data.message); }
+                })
+                .catch(error => { formMessage.textContent = `Błąd: ${error.message}`; });
+            });
+            
+            toggleFormFields();
+        });
+    </script>
+</body>
+</html>
